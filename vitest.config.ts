@@ -20,7 +20,11 @@ export default defineConfig({
     globals: true,
     include: ["tests/**/*.test.ts"],
 
-    // Integration tests use the remote Neon test database.
+    // Integration tests share one remote Neon test database.
+    // Run test files sequentially so their setup/cleanup operations
+    // cannot interfere with one another.
+    fileParallelism: false,
+
     hookTimeout: 30_000,
     testTimeout: 30_000,
   },

@@ -18,6 +18,22 @@ const getJwtConfig = () => {
   };
 };
 
+const createAccessToken = (user: { id: number; email: string }) => {
+  const { secret, expiresIn } = getJwtConfig();
+
+  return jwt.sign(
+    {
+      userId: user.id,
+      email: user.email,
+    },
+    secret,
+    {
+      expiresIn,
+      algorithm: "HS256",
+    },
+  );
+};
+
 export const registerUser = async (input: RegisterInput) => {
   const { name, email, password } = input;
 
@@ -37,11 +53,19 @@ export const registerUser = async (input: RegisterInput) => {
     passwordHash,
   });
 
-  return {
+  const token = createAccessToken({
     id: user.id,
-    name: user.name,
     email: user.email,
-    createdAt: user.createdAt,
+  });
+
+  return {
+    token,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      createdAt: user.createdAt,
+    },
   };
 };
 
@@ -62,19 +86,10 @@ export const loginUser = async (input: LoginInput) => {
     throw new Error("INVALID_CREDENTIALS");
   }
 
-  const { secret, expiresIn } = getJwtConfig();
-
-  const token = jwt.sign(
-    {
-      userId: user.id,
-      email: user.email,
-    },
-    secret,
-    {
-      expiresIn,
-      algorithm: "HS256",
-    },
-  );
+  const token = createAccessToken({
+    id: user.id,
+    email: user.email,
+  });
 
   return {
     token,

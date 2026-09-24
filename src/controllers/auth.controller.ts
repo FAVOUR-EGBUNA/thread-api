@@ -22,14 +22,12 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    const user = await registerUser(result.data);
+    const data = await registerUser(result.data);
 
     return res.status(201).json({
       success: true,
       message: "Account created successfully",
-      data: {
-        user,
-      },
+      data,
     });
   } catch (error) {
     if (error instanceof Error && error.message === "EMAIL_ALREADY_EXISTS") {
