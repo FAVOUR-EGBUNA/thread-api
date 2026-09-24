@@ -1,0 +1,148 @@
+// use prisma-8
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum DecisionStatus {
+  PROPOSED
+  ACCEPTED
+  REJECTED
+  SUPERSEDED
+}
+
+enum RelationType {
+  DEPENDS_ON
+  AFFECTS
+  SUPPORTS
+  CONFLICTS_WITH
+  SUPERSEDES
+  RELATED_TO
+}
+
+model User {
+  id              Int                     @id @default(autoincrement())
+  email           String                  @unique
+  passwordHash    String
+  name            String
+  memberships     WorkspaceMember[]
+  decisionChanges DecisionStatusHistory[]
+  activities      ActivityLog[]
+  createdAt       TimestamptzString       @default(now())
+  updatedAt       temporal.updatedAtString()
+}
+
+model Workspace {
+  id         Int               @id @default(autoincrement())
+  name       String
+  slug       String            @unique
+  members    WorkspaceMember[]
+  projects   Project[]
+  activities ActivityLog[]
+  createdAt  TimestamptzString @default(now())
+  updatedAt  temporal.updatedAtString()
+}
+
+model WorkspaceMember {
+  id   Int           @id @default(autoincrement())
+  role WorkspaceRole @default(MEMBER)
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId Int
+
+  createdAt TimestamptzString @default(now())
+
+  @@unique([userId, workspaceId])
+}
+
+model Project {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId Int
+
+  decisions Decision[]
+
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+}
+
+model Decision {
+  id        Int            @id @default(autoincrement())
+  title     String
+  context   String
+  decision  String
+  reasoning String?
+  status    DecisionStatus @default(PROPOSED)
+
+  project   Project @relation(fields: [projectId], references: [id])
+  projectId Int
+
+  outgoingRelations DecisionRelation[] @relation("SourceDecision")
+  incomingRelations DecisionRelation[] @relation("TargetDecision")
+
+  statusHistory DecisionStatusHistory[]
+
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+}
+
+model DecisionRelation {
+  id   Int          @id @default(autoincrement())
+  type RelationType
+
+  sourceDecision   Decision @relation(
+    "SourceDecision",
+    fields: [sourceDecisionId],
+    references: [id]
+  )
+  sourceDecisionId Int
+
+  targetDecision   Decision @relation(
+    "TargetDecision",
+    fields: [targetDecisionId],
+    references: [id]
+  )
+  targetDecisionId Int
+
+  createdAt TimestamptzString @default(now())
+
+  @@unique([sourceDecisionId, targetDecisionId, type])
+}
+
+model DecisionStatusHistory {
+  id             Int            @id @default(autoincrement())
+  previousStatus DecisionStatus
+  newStatus      DecisionStatus
+
+  decision   Decision @relation(fields: [decisionId], references: [id])
+  decisionId Int
+
+  changedBy   User @relation(fields: [changedById], references: [id])
+  changedById Int
+
+  createdAt TimestamptzString @default(now())
+}
+
+model ActivityLog {
+  id         Int    @id @default(autoincrement())
+  action     String
+  entityType String
+  entityId   Int?
+  metadata   String?
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId Int
+
+  createdAt TimestamptzString @default(now())
+}
