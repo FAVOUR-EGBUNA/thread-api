@@ -19,6 +19,9 @@
   },
   "dependencies": {
     "@prisma/orm-postgres": "^8.0.0-rc.11",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^18.0.3",
@@ -30,9 +33,6 @@
   },
   "devDependencies": {
     "@prisma/cli-engine": "^0.4.0",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.6.2",
     "@types/supertest": "^7.2.1",
     "prisma": "^8.0.0-rc.15",
